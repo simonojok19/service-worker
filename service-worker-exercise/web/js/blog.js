@@ -24,11 +24,13 @@
 			this.console.log("online L");
 			offlineIcon.classList.add("hidden");
 			isOnline = true;
+			sendStatusUpdate();
 		});
 		window.addEventListener("offline", function offline() {
 			this.console.log("offline L");
 			offlineIcon.classList.remove("hidden");
 			isOnline = false;
+			sendStatusUpdate();
 		});
 	}
 
@@ -39,8 +41,32 @@
 		svcworker = swRegistration.installing || swRegistration.waiting || swRegistration.active
 		navigator.serviceWorker.addEventListener("controllerchange", function onController() {
 			svcworker = navigator.serviceWorker.controller;
+			sendStatusUpdate(svcworker);
 		});
+		navigator.serviceWorker.addEventListener("message", onSWMessage);
+	}
 
+	function onSWMessage(event) {
+		var { data } = event;
+		if (data.requestStatusUpdate) {
+			console.log(`Recieved status upate request from service worker`);
+			sendStatusUpdate(event.ports && event.ports[0]);
+			console.log("event: ", event);
+		}
+	}
+
+	function sendStatusUpdate(target) {
+		sendSWMessage({ statusUpdate: { isOnline, isLoggedIn }}, target);
+	}
+
+	async function sendSWMessage(msg, target) {
+		if (target) {
+			target.postMessage(msg);
+		} else if (svcworker) {
+			svcworker.postMessage(msg);
+		} else {
+			navigator.serviceWorker.controller.postMessage(msg);
+		}
 	}
 
 })();
