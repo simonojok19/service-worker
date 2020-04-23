@@ -1,3 +1,3 @@
 "use strict";
 
-// TODO
+const version = 1;
