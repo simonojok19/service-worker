@@ -13,12 +13,6 @@ main().catch(console.error);
 async function main() {
     console.log(`Service Worker (${version}) is starting...`);
     await sendMessage({ requestStatusUpdate: true} )
-    return Promise.all(allClients.map(function clientMsg(clinet) {
-            var chan = new MessageChannel();
-            chan.port1.onmessage = onMessage;
-            return clinet.postMessage(msg, [chan.port2]);}
-        )
-    )
 }
 function onMessage({ data }) {
     if (data.statusUpdate) {
@@ -31,6 +25,12 @@ function onMessage({ data }) {
 
 async function sendMessage(msg) {
     var allClients = await clients.matchAll({ includeUncontrolled: true })
+    return Promise.all(allClients.map(function clientMsg(clinet) {
+        var chan = new MessageChannel();
+        chan.port1.onmessage = onMessage;
+        return clinet.postMessage(msg, [chan.port2]);}
+    )
+)
 }
 async function onInstall(event) {
     console.log(`Service Worker (${version}) is installing...`);
